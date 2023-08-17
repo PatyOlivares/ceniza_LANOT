@@ -31,7 +31,7 @@ def metadata(path_input):
 # Aquí estoy regresando los valores que obtuve en (dentro de) la función, variable datos contiene el metadato, dic_meta es mi diccionario
     return datos, Dic_meta
 
-# Aqui se define la ruta de entrada de la imagen "AKEMI" para la función
+# Debo encontrar una manera de leer las bandas que esten en la carpeta temporal
 
 path_input = 'D:\Fer\ceniza_LANOT\input\goes16.abi-2023.0312.0850-CMI-C01_1km.tif'
 
