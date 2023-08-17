@@ -26,23 +26,17 @@ def metadata(path_input):
                     'TRANSFORMADA':transform, 'SISTM COORD:':crs, 'AÑO': Año, 'MES': Mes, 'DIA': Día}
         
 # Utilizar la transformada para convertir datos de tamaño de pixel
-        pixel_size_x = transform.a
-        pixel_size_y =  transform.e
-        
-# Multiplicando con ancho/altura de matriz X nuevos tamaños de pixel
-        x_size = width * pixel_size_x
-        y_size = height * pixel_size_y
         
 
 # Aquí estoy regresando los valores que obtuve en (dentro de) la función, variable datos contiene el metadato, dic_meta es mi diccionario
     return datos, Dic_meta
 
-# Aqui se define la ruta de entrada de la imagen "AKEMI :3" para la función
+# Aqui se define la ruta de entrada de la imagen "AKEMI" para la función
 
-path_input = 'D:/Fer/ceniza_LANOT/input'
+path_input = 'D:\Fer\ceniza_LANOT\input\goes16.abi-2023.0312.0850-CMI-C01_1km.tif'
 
 # Aquí llamo a la función y guardo el diccionario resultante en 2 variables (preguntar a Uri si es necesario)
 datos, diccionario = metadata(path_input)
 
 # Imprimí el SOLO 'diccionario' para verificar que la información de la fecha se haya agregado correctamente
-print(diccionario)
+print("aqui está la informacion de imagen\n", diccionario)
