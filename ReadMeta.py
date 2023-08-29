@@ -33,7 +33,7 @@ def metadata(path_input):
 
 # Debo encontrar una manera de leer las bandas que esten en la carpeta temporal
 
-path_input = 'D:\Fer\ceniza_LANOT\input\goes16.abi-2023.0312.0850-CMI-C01_1km.tif'
+path_input = 'D:\Fer\ceniza_LANOT\input\goes16.abi-2023.0312.0850-CMI-C06_2km.tif'
 
 # Aquí llamo a la función y guardo el diccionario resultante en 2 variables (preguntar a Uri si es necesario)
 datos, diccionario = metadata(path_input)

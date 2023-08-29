@@ -12,6 +12,9 @@ patron_fecha = r"goes16\.abi-(\d{4}\.\d{4}\.\d{4})"
 
 # Lista para almacenar las fechas
 fechas = []
+# Lista con las bandas necesarias
+bandas = ["-CMI-C01_1km", "-CMI-C02_0.5km", "-CMI-C03_1km", "-CMI-C04_2km", "-CMI-C07_2km", "-CMI-C11_2km", 
+          "-CMI-C13_2km", "-CMI-C14_2km", "-CMI-C15_2km"]
 
 # Iterar a través de los nombres de archivos y obtener las fechas
 for nombre_archivo in nombres_archivos:
@@ -34,12 +37,21 @@ for nombre_archivo in nombres_archivos:
     if patron_fecha.search(nombre_archivo):
         archivos_con_fecha_reciente.append(nombre_archivo)
 
+#Lista para almacenar los nombres de archivos filtrados por el patron
+archivos_con_fecha_reciente_filtrados = []
+
+#Iterar 2 listas y verificar el patron
+for cadena in archivos_con_fecha_reciente:
+    for patron in bandas:
+        if re.search(patron, cadena):
+            archivos_con_fecha_reciente_filtrados.append(cadena)
+
 # Crear una carpeta temporal para copiar las bandas más recientes
 ruta_carpeta_temporal = r"D:/Fer/ceniza_LANOT/temporal"
 os.makedirs(ruta_carpeta_temporal, exist_ok=True)
 
 # Copiar los archivos correspondientes a la carpeta temporal usando os.system
-for nombre_archivo in archivos_con_fecha_reciente:
+for nombre_archivo in archivos_con_fecha_reciente_filtrados:
     comando_copiar = f'copy "{os.path.join(ruta_carpeta_bandas, nombre_archivo)}" "{ruta_carpeta_temporal}"'
     resultado = os.system(comando_copiar)
     if resultado == 0:
