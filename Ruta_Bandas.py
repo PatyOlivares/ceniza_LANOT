@@ -1,5 +1,6 @@
 import os
 import re
+import netCDF4
 
 # Ruta de la carpeta con las bandas de imágenes
 ruta_carpeta_bandas = r"D:/Fer/ceniza_LANOT/input"
