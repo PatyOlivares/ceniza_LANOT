@@ -14,8 +14,8 @@ patron_fecha = r"_s(\d{14})_e(\d{14})_c(\d{14})\.nc"
 # Lista para almacenar las fechas
 fechas = []
 # Lista con las bandas necesarias
-bandas = ["CG_ABI-L2-CMIPC-M6C04_G16", "CG_ABI-L2-CMIPC-M6C07_G16", "CG_ABI-L2-CMIPC-M6C11_G16", 
-          "CG_ABI-L2-CMIPC-M6C13_G16", "CG_ABI-L2-CMIPC-M6C14_G16", "CG_ABI-L2-CMIPC-M6C15_G16"]
+bandas = ["CG_ABI-L2-CMIPC-M3C04_G16", "CG_ABI-L2-CMIPC-M3C07_G16", "CG_ABI-L2-CMIPC-M3C11_G16", 
+          "CG_ABI-L2-CMIPC-M3C13_G16", "CG_ABI-L2-CMIPC-M3C14_G16", "CG_ABI-L2-CMIPC-M3C15_G16"]
 
 # Iterar a través de los nombres de archivos y obtener las fechas
 for nombre_archivo in nombres_archivos:
