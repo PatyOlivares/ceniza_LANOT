@@ -1,6 +1,7 @@
-import os
+import pandas as pd
 import re
-import netCDF4
+import os
+import shutil
 
 # Ruta de la carpeta con las bandas de imágenes
 ruta_carpeta_bandas = r"D:/Fer/ceniza_LANOT/input"
@@ -8,61 +9,45 @@ ruta_carpeta_bandas = r"D:/Fer/ceniza_LANOT/input"
 # Obtener una lista de nombres de archivos en la carpeta
 nombres_archivos = os.listdir(ruta_carpeta_bandas)
 
-# Patrón para extraer la fecha de los nombres de archivos
-patron_fecha = r"goes16\.abi-(\d{4}\.\d{4}\.\d{4})"
+#Filtro para identificar las fechas de inicio (s) por formato yyyymmddhhmmss 
+patron_nombre = re.compile(r'_s(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})_')
 
-# Lista para almacenar las fechas
-fechas = []
-# Lista con las bandas necesarias
-bandas = ["-CMI-C01_1km", "-CMI-C02_0.5km", "-CMI-C03_1km", "-CMI-C04_2km", "-CMI-C07_2km", "-CMI-C11_2km", 
-          "-CMI-C13_2km", "-CMI-C14_2km", "-CMI-C15_2km"]
+#Segundo Filtro para identificar las bandas que se van a usar "4, 7, 11, 13, 14, 15"
+patron_bandas= ["CMIPC-M3C04", "CMIPC-M3C07", "CMIPC-M3C11", "CMIPC-M3C13", "CMIPC-M3C14", "CMIPC-M3C15"]
 
-# Iterar a través de los nombres de archivos y obtener las fechas
-for nombre_archivo in nombres_archivos:
-    fecha_match = re.search(patron_fecha, nombre_archivo)
-    if fecha_match:
-        fecha = fecha_match.group(1)
-        fechas.append(fecha)
+#Una lista vacia para almacenar tuplas con el nombre de los archivos
+archivos_filtrados = []
 
-# Encontrar la fecha más reciente
-fecha_mas_reciente = max(fechas)
+#Aplicamos el primer filtrado por nombre y luego por fecha
+for nombre in nombres_archivos:
+    match_fecha = patron_nombre.search(nombre)
+    if match_fecha:
+        fecha = ''.join(match_fecha.groups())
+        
+        #Se aplica el segundo patron para filtrar las bandas necesarias
+        if any(banda in nombre for banda in patron_bandas):
+            archivos_filtrados.append((nombre, fecha))
+        
+#PANDA TIME 
+df = pd.DataFrame(archivos_filtrados, columns=['Nombre','Fecha'])
 
-# Patrón para verificar si un nombre de archivo contiene la fecha más reciente
-patron_fecha = re.compile(r"goes16\.abi-" + fecha_mas_reciente)
+df['Fecha'] = pd.to_datetime(df['Fecha'], errors='coerce', format='%Y%m%d%H%M%S%f')
 
-# Lista para almacenar los nombres de archivos que coinciden con la fecha
-archivos_con_fecha_reciente = []
+# Obtener la fecha más reciente
+fecha_mas_reciente = df['Fecha'].max()
 
-# Iterar a través de los nombres de archivos y verificar la fecha
-for nombre_archivo in nombres_archivos:
-    if patron_fecha.search(nombre_archivo):
-        archivos_con_fecha_reciente.append(nombre_archivo)
-
-#Lista para almacenar los nombres de archivos filtrados por el patron
-archivos_con_fecha_reciente_filtrados = []
-
-#Iterar 2 listas y verificar el patron
-for cadena in archivos_con_fecha_reciente:
-    for patron in bandas:
-        if re.search(patron, cadena):
-            archivos_con_fecha_reciente_filtrados.append(cadena)
+# Filtrar el DataFrame para obtener solo las filas con la fecha más reciente
+archivos_mas_recientes = df[df['Fecha'] == fecha_mas_reciente]
 
 # Crear una carpeta temporal para copiar las bandas más recientes
 ruta_carpeta_temporal = r"D:/Fer/ceniza_LANOT/temporal"
 os.makedirs(ruta_carpeta_temporal, exist_ok=True)
 
-# Copiar los archivos correspondientes a la carpeta temporal usando os.system
-for nombre_archivo in archivos_con_fecha_reciente_filtrados:
-    comando_copiar = f'copy "{os.path.join(ruta_carpeta_bandas, nombre_archivo)}" "{ruta_carpeta_temporal}"'
-    resultado = os.system(comando_copiar)
-    if resultado == 0:
-        print(f"Se copió {nombre_archivo} a {ruta_carpeta_temporal}")
-    else:
-        print(f"No se pudo copiar {nombre_archivo} a {ruta_carpeta_temporal}")
-
-# Imprimir la ruta de la carpeta temporal
-print("Los archivos se han copiado a la siguiente carpeta temporal:")
-print(ruta_carpeta_temporal)
-    
-# Imprimir la fecha más reciente
-print("La fecha más reciente es:", fecha_mas_reciente)
+#Con un for copiar y pegar los archivos_mas_recientes a carpeta temporal
+for i, fila in archivos_mas_recientes.iterrows():
+  nombre_archivo = fila['Nombre']
+  ruta_origen_archivo = os.path.join(ruta_carpeta_bandas, nombre_archivo)
+  ruta_destino_archivo = os.path.join(ruta_carpeta_temporal, nombre_archivo)
+  
+  shutil.copy(ruta_origen_archivo, ruta_destino_archivo)
+  
