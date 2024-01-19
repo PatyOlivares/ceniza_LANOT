@@ -1,24 +1,20 @@
-#import netCDF4 as nc
-
-# Ruta del archivo NetCDF
-#ruta_nc = r"D:\Fer\ceniza_LANOT\temporal\CG_ABI-L2-CMIPC-M3C15_G16_s20190721557190_e20190721559560_c20190721608227.nc"
-
-# Abrir el archivo NetCDF
-#with nc.Dataset(ruta_nc, 'r') as dataset:
-    # Imprimir las claves disponibles en el conjunto de datos
-    #print(dataset.variables.keys())
-
-
-# Para cada variable, imprimir sus dimensiones y atributos
-#for var_name, variable in dataset.variables.items():
- #   print(f"\nVariable: {var_name}")
-  #  print("Dimensions:", variable.dimensions)
-   # print("Attributes:", variable.__dict__)
-
 import netCDF4 as nc
 
 # Ruta del archivo NetCDF
-ruta_nc = r"D:\Fer\ceniza_LANOT\temporal\CG_ABI-L2-CMIPC-M3C15_G16_s20190721557190_e20190721559560_c20190721608227.nc"
+ruta_nc = r"D:\Fer\ceniza_LANOT\temporal\CG_ABI-L2-CMIPC-M3C15_G16_s20190721507190_e20190721509560_c20190721518229.nc"
+
+# Abrir el archivo NetCDF
+with nc.Dataset(ruta_nc, 'r') as dataset:
+    # Imprimir las claves disponibles en el conjunto de datos
+    print(dataset.variables.keys())
+
+#Para cada variable, imprimir sus dimensiones y atributos
+for var_name, variable in dataset.variables.items():
+    print(f"\nVariable: {var_name}")
+    print("Dimensions:", variable.dimensions)
+    print("Attributes:", variable.__dict__)
+
+
 
 # Abrir el archivo NetCDF
 with nc.Dataset(ruta_nc, 'r') as dataset:
