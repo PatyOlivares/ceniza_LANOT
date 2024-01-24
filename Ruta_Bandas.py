@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import os
 import shutil
+from netCDF4 import Dataset
 
 # Ruta de la carpeta con las bandas de imágenes
 ruta_carpeta_bandas = r"D:/Fer/ceniza_LANOT/input"
@@ -35,7 +36,7 @@ for nombre in nombres_archivos:
         fecha = ''.join(match_fecha.groups())
 
         # Filtrar por bandas
-        for banda in ["M3C01", "M3C02", "M3C03", "M3C04", "M3C07", "M3C11", "M3C13", "M3C14", "M3C15"]:
+        for banda in ["M3C04", "M3C07", "M3C11", "M3C13", "M3C14", "M3C15"]:
             if banda in nombre:
                 archivos_bandas.append((nombre, fecha))
                 break
@@ -78,3 +79,19 @@ for i, fila in archivos_mas_recientes.iterrows():
     ruta_destino_archivo = os.path.join(ruta_carpeta_temporal, nombre_archivo)
 
     shutil.copy(ruta_origen_archivo, ruta_destino_archivo)
+
+#Obtener una lista de nombres de archivos en la carpeta SOLO LAS BANDAS
+posicion = 11
+letra = 'C'
+archivos_nc = [archivo_b for archivo_b in os.listdir(ruta_carpeta_temporal) if archivo_b.endswith('.nc') and 'ACTP' not in archivo_b]
+
+variables = {}
+#Leer los datos de los archios .nc
+
+for archivo_b in archivos_nc:
+    ruta_completa = os.path.join(ruta_carpeta_bandas, archivo_b)
+    with Dataset(ruta_completa, 'r') as nc_file:
+      CMI_values = nc_file.variables['CMI'][:]
+ # Almacena las variables en el diccionario
+    variables[archivo_b]= {'CMI':CMI_values}
+    
