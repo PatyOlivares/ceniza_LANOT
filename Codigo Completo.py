@@ -3,6 +3,9 @@ import re
 import os
 import shutil
 from netCDF4 import Dataset
+import netCDF4 as nc
+import pvlib
+from datetime import datetime, timedelta
 
 # Ruta de la carpeta con las bandas de imágenes
 ruta_carpeta_bandas = r"D:/Fer/ceniza_LANOT/input"
@@ -80,9 +83,61 @@ for i, fila in archivos_mas_recientes.iterrows():
 
     shutil.copy(ruta_origen_archivo, ruta_destino_archivo)
 
+## PARTE DE SOL CENIT #####-------------------------------------------------------------------------------------
+
+# Define el patrón para la banda 15
+patron_15 = "M3C15"
+
+# Filtro para identificar las fechas de inicio (s) por formato sYYYYYDDDHHMMSSs
+patron_nombre = re.compile(r'_s(\d{14})')
+
+# Buscar archivos NetCDF en la carpeta
+for archivo in os.listdir(ruta_carpeta_temporal):
+    if patron_15 in archivo:
+        # Buscar la fecha en el nombre del archivo
+        match_fecha = patron_nombre.search(archivo)
+        if match_fecha:
+            # Obtener la fecha en formato juliano
+            fecha_juliana = match_fecha.group(1)
+
+            # Convertir la fecha juliana a formato estándar
+            año = int(fecha_juliana[0:4])
+            dia_del_año = int(fecha_juliana[4:7])
+            hora = int(fecha_juliana[7:9])
+            minuto = int(fecha_juliana[9:11])
+            segundo = int(fecha_juliana[11:13])
+
+            fecha_obj = datetime(año, 1, 1) + timedelta(days=dia_del_año - 1, hours=hora, minutes=minuto, seconds=segundo)
+
+            # Imprimir resultados
+            print(f"Encontré un archivo con M3C15: {archivo}")
+            print(f"Fecha del archivo (juliana): {fecha_juliana}")
+            print(f"Fecha convertida: {fecha_obj.strftime('%Y-%m-%d %H:%M:%S')}")
+
+            # Abrir el archivo NetCDF y obtener la lista de variables
+            ruta_nc = os.path.join(ruta_carpeta_temporal, archivo)
+            with nc.Dataset(ruta_nc, 'r') as dataset:
+                # Obtener la coordenada de subpunto nominal del satélite
+                lat_satellite = dataset.variables['nominal_satellite_subpoint_lat'][0]
+                lon_satellite = dataset.variables['nominal_satellite_subpoint_lon'][0]
+
+                # Calcular la posición del sol en la escena usando pvlib
+                solar_position = pvlib.solarposition.get_solarposition(
+                    time=fecha_obj,
+                    latitude=lat_satellite,
+                    longitude=lon_satellite
+                )
+
+                # Obtener el ángulo cenital del sol
+                sun_zenith = solar_position['zenith'].values[0]
+
+                print(f"Sun Zenith: {sun_zenith:.2f} degrees")
+            print("\n", "\n \n\n\n ---------------------------------------------------------")
+
+
+#PARTE DE PATY - CREACION DICCIONARIO#---------------------------------------------------------------------------
+
 #Obtener una lista de nombres de archivos en la carpeta SOLO LAS BANDAS
-posicion = 11
-letra = 'C'
 archivos_nc = [archivo_b for archivo_b in os.listdir(ruta_carpeta_temporal) if archivo_b.endswith('.nc') and 'ACTP' not in archivo_b]
 
 variables = {}
@@ -94,4 +149,3 @@ for archivo_b in archivos_nc:
       CMI_values = nc_file.variables['CMI'][:]
  # Almacena las variables en el diccionario
     variables[archivo_b]= {'CMI':CMI_values}
-    
