@@ -8,9 +8,9 @@ import pvlib
 from datetime import datetime, timedelta
 
 # Ruta de la carpeta con las bandas de imágenes
-ruta_carpeta_bandas = r"D:/Fer/ceniza_LANOT/input"
+ruta_carpeta_bandas = r"C:\Users\Akemi\Documents\SS\Github\ceniza_LANOT\input"
 # Ruta de la carpeta temporal
-ruta_carpeta_temporal = r"D:/Fer/ceniza_LANOT/temporal"
+ruta_carpeta_temporal = r"C:\Users\Akemi\Documents\SS\Github\ceniza_LANOT\temporal"
 
 # Limpiar la carpeta temporal si existe
 if os.path.exists(ruta_carpeta_temporal):
@@ -149,3 +149,29 @@ for archivo_b in archivos_nc:
       CMI_values = nc_file.variables['CMI'][:]
  # Almacena las variables en el diccionario
     variables[archivo_b]= {'CMI':CMI_values}
+
+
+    #Nearest neighbour: Nhood 
+    #Calculo del índice de vecindad 
+        #reduce: True si se debe reducir el vecindario a un único valor. False en caso contrario.
+        # box_sides: El tamaño del vecindario.
+        #min_good: El número mínimo de píxeles buenos necesarios para que la expresión se aplique.
+
+    def nhood(variables, band_13, band_15, reduce=False, box_sides=(5, 5), min_good=3):
+
+        # Obtener los valores de las bandas.
+        x1 = variables[band_13]
+        x2 = variables[band_15]
+
+        #Calcular el vecindario.
+        vecindario = np.lib.stride_tricks.sliding_window_view(x1, box_sides)
+
+        # Evaluar la expresión.
+        resultado = np.where(np.logical_and(x1 < 0, x1 - (np.mean(vecindario) + np.std(vecindario)) < -1), 1,
+            np.where(np.logical_and(x1 < 1, x1 - (np.mean(vecindario) + np.std(vecindario)) < -1), 2, 0))
+        
+        #Agregar una reducción si el vecindario es muy grande y alente el proceso 
+
+        return resultado
+
+
