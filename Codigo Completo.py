@@ -6,11 +6,12 @@ from netCDF4 import Dataset
 import netCDF4 as nc
 import pvlib
 from datetime import datetime, timedelta
+import numpy as np
 
 # Ruta de la carpeta con las bandas de imágenes
-ruta_carpeta_bandas = r"C:\Users\Akemi\Documents\SS\Github\ceniza_LANOT\input"
+ruta_carpeta_bandas = r"D:\Fer\ceniza_LANOT\input"
 # Ruta de la carpeta temporal
-ruta_carpeta_temporal = r"C:\Users\Akemi\Documents\SS\Github\ceniza_LANOT\temporal"
+ruta_carpeta_temporal = r"D:\Fer\ceniza_LANOT\temporal"
 
 # Limpiar la carpeta temporal si existe
 if os.path.exists(ruta_carpeta_temporal):
@@ -135,7 +136,7 @@ for archivo in os.listdir(ruta_carpeta_temporal):
             print("\n", "\n \n\n\n ---------------------------------------------------------")
 
 
-#PARTE DE PATY - CREACION DICCIONARIO#---------------------------------------------------------------------------
+#------------------------------------PARTE DE PATY - CREACION DICCIONARIO#-------------------------------------------------------#
 
 #Obtener una lista de nombres de archivos en la carpeta SOLO LAS BANDAS
 archivos_nc = [archivo_b for archivo_b in os.listdir(ruta_carpeta_temporal) if archivo_b.endswith('.nc') and 'ACTP' not in archivo_b]
@@ -150,28 +151,62 @@ for archivo_b in archivos_nc:
  # Almacena las variables en el diccionario
     variables[archivo_b]= {'CMI':CMI_values}
 
+#--------------#Transmisividad#--------------------------------------------------------------------------------------#
+def trans(variables):
+    
+    # Obtener las claves ordenadas (siempre en el orden de bandas menor a mayor)
+    ordered_keys = sorted(variables.keys())
+    
+    # Obtener las matrices 'CMI' de todas las bandas
+    band_matrices = [variables[key]['CMI'].data for key in ordered_keys]
+    
+    #Definiendo variables
+    #banda 7#
+    x1 = band_matrices[1]['CMI']
+    #banda 11#
+    x2 = band_matrices[2]['CMI']
+    #banda 13#
+    x3 = 
 
-    #Nearest neighbour: Nhood 
-    #Calculo del índice de vecindad 
-        #reduce: True si se debe reducir el vecindario a un único valor. False en caso contrario.
-        # box_sides: El tamaño del vecindario.
-        #min_good: El número mínimo de píxeles buenos necesarios para que la expresión se aplique.
 
-    def nhood(variables, band_13, band_15, reduce=False, box_sides=(5, 5), min_good=3):
+    # Banda 13 - Banda 15
+    y1_expr = band_matrices[3]['CMI'] - band_matrices[5]['CMI']
+    # Banda 11 - Banda 13
+    y2_expr = band_matrices[2]['CMI'] - band_matrices[3]['CMI']
+    # Banda 7 - Banda 13
+    y3_expr = band_matrices[1]['CMI'] - band_matrices[3]['CMI']
 
-        # Obtener los valores de las bandas.
-        x1 = variables[band_13]
-        x2 = variables[band_15]
+    return y1_expr, y2_expr, y3_expr
 
-        #Calcular el vecindario.
-        vecindario = np.lib.stride_tricks.sliding_window_view(x1, box_sides)
+#-----------#Nearest neighbour: Nhood #------------------------------------------------------------------------------#
 
-        # Evaluar la expresión.
-        resultado = np.where(np.logical_and(x1 < 0, x1 - (np.mean(vecindario) + np.std(vecindario)) < -1), 1,
-            np.where(np.logical_and(x1 < 1, x1 - (np.mean(vecindario) + np.std(vecindario)) < -1), 2, 0))
-        
-        #Agregar una reducción si el vecindario es muy grande y alente el proceso 
+def nhood(variables, box_sides=(5, 5), min_good=3):
+    # Obtener las claves ordenadas (siempre en el orden de bandas menor a mayor)
+    ordered_keys = sorted(variables.keys())
+    
+    # Obtener las matrices 'CMI' de todas las bandas
+    band_matrices = [variables[key]['CMI'].data for key in ordered_keys]
 
-        return resultado
+    # Usar la matriz de la banda 13 como referencia para el cálculo del vecindario
+    x1 = band_matrices[3]  # La banda 13 está en la posición 2 (índice 2) en band_matrices
+    x2 = band_matrices[5] # CARGO LA BANDA 15 PERO NO SE POR QUE? 
+    x3 = x1 - x2
+    
+    # Calcular el vecindario.
+    vecindario = np.lib.stride_tricks.sliding_window_view(x1, box_sides)
 
+    # Evaluar la expresión.
+    resultado = np.where(np.logical_and(x3 < 0, x3 - (np.mean(vecindario) + np.std(vecindario)) < -1), 1,
+                         np.where(np.logical_and(x3 < 1, x3 - (np.mean(vecindario) + np.std(vecindario)) < -1), 2, 0))
+
+    return resultado
+
+#ASI SALVAMOS LO QUE REGRESA LA FUNCION#
+# Llamar a la función
+neighbor = nhood(variables)
+transmisividad = trans(variables)
+
+
+# Imprimir el resultado
+#print(resultado)
 
