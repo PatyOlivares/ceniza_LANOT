@@ -91,4 +91,65 @@ A7 = if (A6 = 2 and x9 = 1):
 
                                 
 
-    
+    import numpy as np
+
+# Suponiendo que x1, x2, x3, x4, x5, x6, x8 y x9 son matrices NumPy de tamaño 1500x2500
+x1 = np.random.random((1500, 2500))
+x2 = np.random.random((1500, 2500))
+x3 = np.random.random((1500, 2500))
+x4 = np.random.randint(0, 3, size=(1500, 2500))
+x5 = np.random.random((1500, 2500))
+x6 = np.random.random((1500, 2500))
+x8 = np.random.random((1500, 2500)) * 100  # Supongo que x8 es un valor en el rango 0-100
+x9 = np.random.randint(1, 5, size=(1500, 2500))  # Supongo que x9 es un valor en el rango 1-4
+
+# Expresiones condicionales equivalentes en Python
+
+y1_expr = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) | (x4 == 1), 1, np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) | (x4 == 2), 2, 0))
+
+y2_expr = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) | (x4 == 1), 1,
+                   np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) & (x5 > 0.002) & (x6 < 273) | (x4 == 2), 2, 0))
+
+y3_expr = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) & (x5 > 0.002) | (x4 == 1), 1,
+                   np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) & (x5 > 0.002) | (x4 == 2), 2, 0))
+
+y4_expr = np.where(x8 > 85, y1_expr,
+                   np.where((x8 < 85) & (x8 > 70), y2_expr,
+                            np.where(x8 < 70, y3_expr, 0)))
+
+y5_expr = np.where(y4_expr == 1, y4_expr,
+                   np.where((y4_expr == 2) & (x2 >= -0.6), 2,
+                            np.where((y4_expr == 2) & (x2 >= -1), 2,
+                                     np.where((y4_expr == 2) & (x2 >= -1.5), 3,
+                                              np.where((y4_expr == 2) & (x2 < -1.5), 0, y4_expr)))))
+
+y6_expr = np.where((y5_expr <= 2) & (x3 <= 0), 0,
+                   np.where((y5_expr >= 3) & (x3 <= 1.5), 0, y5_expr))
+
+y7_expr = np.where((y6_expr == 2) & (x9 == 1), 4,
+                   np.where((y6_expr == 2) & (x9 == 4), 0,
+                            np.where((y6_expr == 3) & (x9 == 1), 5,
+                                     np.where((y6_expr == 3) & (x9 >= 2), 0, y6_expr))))
+
+# Puedes utilizar las variables y1_expr, y2_expr, y3_expr, y4_expr, y5_expr, y6_expr y y7_expr según tus necesidades.
+
+print("y1_expr:")
+print(y1_expr)
+
+print("\ny2_expr:")
+print(y2_expr)
+
+print("\ny3_expr:")
+print(y3_expr)
+
+print("\ny4_expr:")
+print(y4_expr)
+
+print("\ny5_expr:")
+print(y5_expr)
+
+print("\ny6_expr:")
+print(y6_expr)
+
+print("\ny7_expr:")
+print(y7_expr)

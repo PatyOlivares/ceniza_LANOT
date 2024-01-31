@@ -160,25 +160,29 @@ def trans(variables):
     # Obtener las matrices 'CMI' de todas las bandas
     band_matrices = [variables[key]['CMI'].data for key in ordered_keys]
     
-    #Definiendo variables
-    #banda 7#
-    x1 = band_matrices[1]['CMI']
-    #banda 11#
-    x2 = band_matrices[2]['CMI']
-    #banda 13#
-    x3 = 
-
+    # Definiendo variables
+    # Cambiar el índice de 1 a 0, ya que las listas en Python comienzan desde 0
+    x0 = band_matrices[0]  # banda 4
+    x1 = band_matrices[1]  # banda 7
+    x2 = band_matrices[2]  # banda 11
+    x3 = band_matrices[3]  # banda 13
+    x4 = band_matrices[4]  # banda 14
+    x5 = band_matrices[5]  # banda 15
 
     # Banda 13 - Banda 15
-    y1_expr = band_matrices[3]['CMI'] - band_matrices[5]['CMI']
+    y1_expr = x3 - x5
     # Banda 11 - Banda 13
-    y2_expr = band_matrices[2]['CMI'] - band_matrices[3]['CMI']
+    y2_expr = x2 - x3
     # Banda 7 - Banda 13
-    y3_expr = band_matrices[1]['CMI'] - band_matrices[3]['CMI']
+    y3_expr = x1 - x3
+    
+    # Luego, puedes imprimir o hacer lo que necesites con los resultados
+    return y1_expr, y2_expr, y3_expr, x0, x4, x5
 
-    return y1_expr, y2_expr, y3_expr
+# Llamar a la función trans y obtener los resultados
+y1_expr, y2_expr, y3_expr, x0, x4, x5 = trans(variables)
 
-#-----------#Nearest neighbour: Nhood #------------------------------------------------------------------------------#
+#-----------------------------# NEIGHBORHOOD #------------------------------------#
 
 def nhood(variables, box_sides=(5, 5), min_good=3):
     # Obtener las claves ordenadas (siempre en el orden de bandas menor a mayor)
@@ -201,12 +205,56 @@ def nhood(variables, box_sides=(5, 5), min_good=3):
 
     return resultado
 
-#ASI SALVAMOS LO QUE REGRESA LA FUNCION#
-# Llamar a la función
+#Llamamos a la funcion neighbor y obtenemos el resultado
 neighbor = nhood(variables)
-transmisividad = trans(variables)
+
+#---------------------------------------LAS CONDICIONALES DE CENIZA----------------------------------------------------------#
+
+#RENOMBRANDO Variables que ya tenemos
+x1 = y1_expr
+x2 = y2_expr
+x3 = y3_expr
+x4 = neighbor
+x5 = x4
+x6 = x4
+x7 = x5
+x8 = sun_zenith
+#x9 = phase # <-------------- la phase está dentro de la mascará osea el archivo ACTP
+
+CENIZA_N = np.zeros_like(x1, dtype=np.int8)
+CENIZA_CREP = np.zeros_like(x1, dtype=np.int8)
+CENIZA_D = np.zeros_like(x1, dtype=np.int8)
 
 
-# Imprimir el resultado
-#print(resultado)
+# Noche
+CENIZA_N = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) | (x4 == 1), 1, np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) | (x4 == 2), 2, 0))
+
+# Crepusculo
+CENIZA_CREP = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) | (x4 == 1), 1,
+                   np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) & (x5 > 0.002) & (x6 < 273) | (x4 == 2), 2, 0))
+
+# Día 
+CENIZA_D = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) & (x5 > 0.002) | (x4 == 1), 1,
+                   np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) & (x5 > 0.002) | (x4 == 2), 2, 0))
+
+#FALTA POR COMPROBAR#
+
+CENIZA_TIEMPO = np.where(x8 > 85, CENIZA_N,
+                   np.where((x8 < 85) & (x8 > 70), CENIZA_CREP,
+                            np.where(x8 < 70, CENIZA_D, 0)))
+
+CENIZA_UM1 = np.where(CENIZA_TIEMPO == 1, CENIZA_TIEMPO,
+                   np.where((CENIZA_TIEMPO == 2) & (x2 >= -0.6), 2,
+                            np.where((CENIZA_TIEMPO == 2) & (x2 >= -1), 2,
+                                     np.where((CENIZA_TIEMPO == 2) & (x2 >= -1.5), 3,
+                                              np.where((CENIZA_TIEMPO == 2) & (x2 < -1.5), 0, CENIZA_TIEMPO)))))
+
+CENIZA_UM2 = np.where((CENIZA_UM1 <= 2) & (x3 <= 0), 0,
+                   np.where((CENIZA_UM1 >= 3) & (x3 <= 1.5), 0, CENIZA_UM1))
+
+CENIZA = np.where((CENIZA_UM2 == 2) & (x9 == 1), 4,
+                   np.where((CENIZA_UM2 == 2) & (x9 == 4), 0,
+                            np.where((CENIZA_UM2 == 3) & (x9 == 1), 5,
+                                     np.where((CENIZA_UM2 == 3) & (x9 >= 2), 0, CENIZA_UM2))))
+
 

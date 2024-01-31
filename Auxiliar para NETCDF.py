@@ -1,7 +1,7 @@
 import netCDF4 as nc
 
 # Ruta del archivo NetCDF
-ruta_nc = r"D:\Fer\ceniza_LANOT\temporal\CG_ABI-L2-CMIPC-M3C15_G16_s20190721507190_e20190721509560_c20190721518229.nc"
+ruta_nc = r"D:\Fer\ceniza_LANOT\temporal\CG_ABI-L2-ACTPC-M3_G16_s20190721557191_e20190721559575_c20190721600012.nc"
 
 # Abrir el archivo NetCDF
 with nc.Dataset(ruta_nc, 'r') as dataset:
