@@ -83,9 +83,7 @@ for i, fila in archivos_mas_recientes.iterrows():
     ruta_destino_archivo = os.path.join(ruta_carpeta_temporal, nombre_archivo)
 
     shutil.copy(ruta_origen_archivo, ruta_destino_archivo)
-
-## PARTE DE SOL CENIT #####-------------------------------------------------------------------------------------
-
+#---------------------------------#Obteniendo el SOL CENIT de la banda 15#--------------------------------#
 # Define el patrón para la banda 15
 patron_15 = "M3C15"
 
@@ -107,13 +105,7 @@ for archivo in os.listdir(ruta_carpeta_temporal):
             hora = int(fecha_juliana[7:9])
             minuto = int(fecha_juliana[9:11])
             segundo = int(fecha_juliana[11:13])
-
             fecha_obj = datetime(año, 1, 1) + timedelta(days=dia_del_año - 1, hours=hora, minutes=minuto, seconds=segundo)
-
-            # Imprimir resultados
-            print(f"Encontré un archivo con M3C15: {archivo}")
-            print(f"Fecha del archivo (juliana): {fecha_juliana}")
-            print(f"Fecha convertida: {fecha_obj.strftime('%Y-%m-%d %H:%M:%S')}")
 
             # Abrir el archivo NetCDF y obtener la lista de variables
             ruta_nc = os.path.join(ruta_carpeta_temporal, archivo)
@@ -128,15 +120,21 @@ for archivo in os.listdir(ruta_carpeta_temporal):
                     latitude=lat_satellite,
                     longitude=lon_satellite
                 )
-
                 # Obtener el ángulo cenital del sol
                 sun_zenith = solar_position['zenith'].values[0]
+                print(f"Fecha de la imagen reciente: {fecha_obj.strftime('%Y-%m-%d %H:%M:%S')}")
+                print("---------------------------------------------------------")
+                print(f"Sun Zenith de la b15: {sun_zenith:.2f} degrees")
 
-                print(f"Sun Zenith: {sun_zenith:.2f} degrees")
-            print("\n", "\n \n\n\n ---------------------------------------------------------")
+#---------------------------------------OBTENIENDO LA FASE DE LA MASCARA (ACTP)------------------------------------------#
+for archivo_msk in os.listdir(ruta_carpeta_temporal):
+    if patron_mascara in archivo_msk:
+        ruta_msk = os.path.join(ruta_carpeta_temporal,archivo_msk)
+        with nc.Dataset(ruta_msk, 'r') as dataset_mask:
+            # Obtener la phase
+            phase = dataset_mask.variables['Phase'][:]
 
-
-#------------------------------------PARTE DE PATY - CREACION DICCIONARIO#-------------------------------------------------------#
+#------------------------------------PARTE DE PATY - CREACION DICCIONARIO de variables#-------------------------------------------------------#
 
 #Obtener una lista de nombres de archivos en la carpeta SOLO LAS BANDAS
 archivos_nc = [archivo_b for archivo_b in os.listdir(ruta_carpeta_temporal) if archivo_b.endswith('.nc') and 'ACTP' not in archivo_b]
@@ -219,7 +217,7 @@ x5 = x4
 x6 = x4
 x7 = x5
 x8 = sun_zenith
-#x9 = phase # <-------------- la phase está dentro de la mascará osea el archivo ACTP
+x9 = phase 
 
 CENIZA_N = np.zeros_like(x1, dtype=np.int8)
 CENIZA_CREP = np.zeros_like(x1, dtype=np.int8)
@@ -237,18 +235,18 @@ CENIZA_CREP = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) | (x4 == 1), 1,
 CENIZA_D = np.where((x1 < 0) & (x2 > 0) & (x3 > 2) & (x5 > 0.002) | (x4 == 1), 1,
                    np.where((x1 < 1) & (x2 > -0.5) & (x3 > 2) & (x5 > 0.002) | (x4 == 2), 2, 0))
 
-#FALTA POR COMPROBAR#
+# Sol cenit
 
 CENIZA_TIEMPO = np.where(x8 > 85, CENIZA_N,
                    np.where((x8 < 85) & (x8 > 70), CENIZA_CREP,
                             np.where(x8 < 70, CENIZA_D, 0)))
-
+# Umbral 1
 CENIZA_UM1 = np.where(CENIZA_TIEMPO == 1, CENIZA_TIEMPO,
                    np.where((CENIZA_TIEMPO == 2) & (x2 >= -0.6), 2,
                             np.where((CENIZA_TIEMPO == 2) & (x2 >= -1), 2,
                                      np.where((CENIZA_TIEMPO == 2) & (x2 >= -1.5), 3,
                                               np.where((CENIZA_TIEMPO == 2) & (x2 < -1.5), 0, CENIZA_TIEMPO)))))
-
+# Umbral 1
 CENIZA_UM2 = np.where((CENIZA_UM1 <= 2) & (x3 <= 0), 0,
                    np.where((CENIZA_UM1 >= 3) & (x3 <= 1.5), 0, CENIZA_UM1))
 
